@@ -32,7 +32,9 @@
           <p>
             {{ post.text }}
           </p>
-          <a href="{% url 'posts:post_edit' post.id %}">редактировать запись</a>
+          {% if request.user == post.author %}
+            <a href="{% url 'posts:post_edit' post.id %}">редактировать запись</a>
+          {% endif %}
         </article>
       </div> 
 {% endblock %}

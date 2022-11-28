@@ -22,9 +22,9 @@
                     {{ error|escape }}
                   </div>
                 {% endfor %}
-            {% endif %}<form method="post" action="{% url 'users:signup' %}">
-            
-            {% csrf_token %}
+            {% endif %}
+            <form method="post" action="{% url 'users:signup' %}">
+              {% csrf_token %}
 
             {# Выводим поля в цикле, по отдельности #}
             {% for field in form %} 
