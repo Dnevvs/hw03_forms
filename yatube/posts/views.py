@@ -1,13 +1,9 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post, Group
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from .forms import PostForm
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from .forms import PostForm
+from .models import Post, Group, User
 from .utils import mypaginator
-
-
-User = get_user_model()
 
 
 def index(request):
@@ -45,8 +41,6 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    # post_count = (Post.objects.select_related('group').
-    #              filter(author=post.author).count())
     post_count = post.author.posts.count()
     context = {
         'post': post,
@@ -64,10 +58,8 @@ def post_create(request):
     if form.is_valid():
         post = form.save(commit=False)
         post.author = username
-        post.text = form.cleaned_data['text']
-        post.group = form.cleaned_data['group']
         post.save()
-        return redirect(f'/profile/{username}/')
+        return redirect('posts:profile', request.user)
     return render(request, 'posts/create_post.html',
                   {'form': form, 'groups': groups})
 
@@ -78,16 +70,14 @@ def post_edit(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     username = request.user
     if post.author != username:
-        return redirect(f'/posts/{post_id}/')
+        return redirect('posts:post_detail', post_id)
     form = PostForm(request.POST or None, instance=post)
     if form.is_valid():
         post = form.save(commit=False)
         post.author = username
         post.pub_date = timezone.now()
-        post.text = form.cleaned_data['text']
-        post.group = form.cleaned_data['group']
         post.save()
-        return redirect(f'/posts/{post_id}/')
+        return redirect('posts:post_detail', post_id)
     return render(request, 'posts/create_post.html',
                   {'form': form, 'groups': groups,
                    'post_id': post_id, 'is_edit': True})
