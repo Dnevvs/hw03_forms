@@ -1,6 +1,5 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from django.utils import timezone
 from .forms import PostForm
 from .models import Post, Group, User
 from .utils import mypaginator
@@ -41,43 +40,33 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    post_count = post.author.posts.count()
     context = {
         'post': post,
-        'post_count': post_count,
-        'short_text': post.text[:30]
     }
     return render(request, 'posts/post_detail.html', context)
 
 
 @login_required
 def post_create(request):
-    groups = Group.objects.all()
-    username = request.user
     form = PostForm(request.POST or None)
     if form.is_valid():
         post = form.save(commit=False)
-        post.author = username
+        post.author = request.user
         post.save()
         return redirect('posts:profile', request.user)
-    return render(request, 'posts/create_post.html',
-                  {'form': form, 'groups': groups})
+    return render(request, 'posts/create_post.html', {'form': form})
 
 
 @login_required
 def post_edit(request, post_id):
-    groups = Group.objects.all()
     post = get_object_or_404(Post, id=post_id)
-    username = request.user
-    if post.author != username:
+    if post.author != request.user:
         return redirect('posts:post_detail', post_id)
     form = PostForm(request.POST or None, instance=post)
     if form.is_valid():
         post = form.save(commit=False)
-        post.author = username
-        post.pub_date = timezone.now()
+        post.author = request.user
         post.save()
         return redirect('posts:post_detail', post_id)
     return render(request, 'posts/create_post.html',
-                  {'form': form, 'groups': groups,
-                   'post_id': post_id, 'is_edit': True})
+                  {'form': form, 'post_id': post_id, 'is_edit': True})

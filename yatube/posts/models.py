@@ -20,7 +20,7 @@ class Post(models.Model):
         verbose_name='Текст поста',
         help_text='Текст поста'
     )
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
